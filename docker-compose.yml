@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: worknoon-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: worknoon
+      POSTGRES_PASSWORD: worknoon_password
+      POSTGRES_DB: worknoon
+    ports:
+      - "5433:5432"
+    volumes:
+      - worknoon_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U worknoon -d worknoon"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: worknoon-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://worknoon:worknoon_password@postgres:5432/worknoon?schema=public
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  worknoon_postgres_data:
