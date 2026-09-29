@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  orders         Order[]
+  refundRequests RefundRequest[]
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  orderNumber String      @unique
+  customerId  String
+  totalAmount Float
+  status      OrderStatus
+  orderedAt   DateTime
+
+  customer       Customer        @relation(fields: [customerId], references: [id])
+  items          OrderItem[]
+  refundRequests RefundRequest[]
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  productName String
+  quantity    Int
+  price       Float
+  finalSale   Boolean @default(false)
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model RefundRequest {
+  id               String         @id @default(cuid())
+  customerId       String
+  orderId          String
+  reason           String
+  amount           Float
+  decision         RefundDecision?
+  aiClassification String?
+  aiConfidence     Float?
+  policyReasons    Json?
+  response         String?
+  createdAt        DateTime       @default(now())
+
+  customer  Customer @relation(fields: [customerId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+  auditLogs AuditLog[]
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  refundId  String
+  event     String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  refund RefundRequest @relation(fields: [refundId], references: [id])
+}
+
+enum OrderStatus {
+  DELIVERED
+  PROCESSING
+  CANCELLED
+  REFUNDED
+}
+
+enum RefundDecision {
+  APPROVED
+  DENIED
+  ESCALATED
+}
