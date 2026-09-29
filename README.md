@@ -61,7 +61,7 @@ Gemini failures such as temporary 503 or rate-limit responses are retried using 
 
 If AI remains unavailable, the backend falls back safely while allowing the deterministic policy engine to determine the final decision.
 
-## AI UNAVAILABILITY
+## AI AVAILABILITY
 
 AI availability fallback: If the Gemini API is temporarily unavailable, the system retries transient failures and falls back to the deterministic policy engine. AI unavailability never overrides the backend's authoritative policy decision.
 ## Setup
